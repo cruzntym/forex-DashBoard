@@ -1,0 +1,47 @@
+# 1. Import Libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 2. Load Dataset
+df = pd.read_csv("statement6231db41a228040279cdf4d768bb5cd0.csv")
+
+# 3. Inspect Data
+print(df.head())
+print(df.info())
+
+# 4. Clean Data
+
+df['Open_Date'] = pd.to_datetime(df['Open_Date'].str.strip(), format="%B %d, %Y")
+
+df['Open_Date'] = df['Open_Date'].dt.month
+df['Open_Date'] = df['Open_Date'].dt.day
+df.dropna(subset=['Open_Date', 'country'], inplace=True)
+
+
+df['Close_Date'] = pd.to_datetime(df['lose_Date'].str.strip(), format="%B %d, %Y")
+
+
+df['Close_Date'] = df['lose_Date'].dt.month
+df['Close_Date'] = df['Close_Date'].dt.day
+df.dropna(subset=['Close_Date', 'symbol'], inplace=True)
+
+# 5. Analysis Examples
+
+# a. Content type over time
+Open_Date = df.groupby(['Open_Date', 'type']).size().unstack()
+Open_Date.plot(kind='bar', stacked=True, figsize=(12,6))
+plt.title("Daily profit Analysis")
+plt.xlabel("currency Pair")
+plt.ylabel("Profit")
+plt.tight_layout()
+plt.show()
+
+# b. Top countries by content
+symbol = df['symbol'].value_counts().head(10)
+sns.barplot(x=symbol.values, y=symbol.index)
+plt.title("symbol performance")
+plt.xlabel("Number of trades")
+plt.tight_layout()
+plt.show()
+
