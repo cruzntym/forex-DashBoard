@@ -27,7 +27,19 @@ app.layout = html.Div([
             clearable=False
         )
     ], style={'width': '45%', 'display': 'inline-block', 'paddingRight': '20px'}),
-
+html.Div([
+    html.Label("Select an EA:"),
+    dcc.Dropdown(
+        id='ea-file-dropdown',
+        options=[
+            {'label': 'EA 1', 'value': 'data/statement1e1ee36cf9536fa2f581c553705839b6.csv'},
+            {'label': 'EA 2', 'value': 'data/statement6231db41a228040279cdf4d768bb5cd0.csv'},
+            {'label': 'EA 3', 'value': 'data/statementecea4b2366f360ffedb3b7b8cbeb87d4.csv'},
+        ],
+        value='data/statement1e1ee36cf9536fa2f581c553705839b6.csv',
+        clearable=False
+    )
+], style={'width': '40%', 'marginBottom': '20px'}),
     html.Div([
         html.Label("Select Date Range:"),
         dcc.DatePickerRange(
@@ -72,17 +84,24 @@ app.layout = html.Div([
     )
 ])
 
-# Callback to update graph, summary, and table
+# Callback to update graph, summary, and table@app.callback(
 @app.callback(
     [Output('profit-graph', 'figure'),
      Output('profit-summary', 'children'),
      Output('data-table', 'data')],
-    [Input('symbol-dropdown', 'value'),
+    [Input('ea-file-dropdown', 'value'),
+     Input('symbol-dropdown', 'value'),
      Input('date-picker', 'start_date'),
      Input('date-picker', 'end_date'),
      Input('view-mode', 'value')]
 )
-def update_dashboard(symbol, start_date, end_date, view_mode):
+def update_dashboard(ea_file, symbol, start_date, end_date, view_mode):
+    df = pd.read_csv(ea_file)
+    df['Close Date'] = pd.to_datetime(df['Close Date'], errors='coerce')
+    df = df.dropna(subset=['Close Date', 'Symbol'])
+
+    currency_profit = df.groupby(['Symbol', 'Close Date'])['Profit'].sum().reset_index()
+
     data = currency_profit[
         (currency_profit['Symbol'] == symbol) &
         (currency_profit['Close Date'] >= pd.to_datetime(start_date)) &
