@@ -1,0 +1,4 @@
+app = "forex-dashboard-sd"
+
+[env]
+  PORT = "8080"
