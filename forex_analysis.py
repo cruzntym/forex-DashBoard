@@ -3,7 +3,8 @@ from dash import Dash, dcc, html, Input, Output, State, dash_table
 import plotly.graph_objects as go
 
 # Load and prepare data
-df = pd.read_csv("statement6231db41a228040279cdf4d768bb5cd0.csv")
+df = pd.read_csv("data/statement6231db41a228040279cdf4d768bb5cd0.csv")
+
 df['Close Date'] = pd.to_datetime(df['Close Date'], errors='coerce')
 df = df.dropna(subset=['Close Date', 'Symbol'])
 
@@ -164,3 +165,8 @@ def download_filtered_data(n_clicks, symbol, start_date, end_date):
 # Run app
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+import os
+
+print(os.path.exists("data/statement6231db41a228040279cdf4d768bb5cd0.csv"))
