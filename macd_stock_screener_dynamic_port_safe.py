@@ -166,3 +166,51 @@ if __name__ == "__main__":
     threading.Thread(target=start_web_server, daemon=True).start()
     while True:
         time.sleep(3)
+
+
+# MACD Backtest Strategy
+class MACDStrategy(bt.Strategy):
+    def __init__(self):
+        macd = bt.ind.MACD()
+        self.crossover = bt.ind.CrossOver(macd.macd, macd.signal)
+
+    def next(self):
+        if not self.position:
+            if self.crossover > 0:
+                self.buy()
+        elif self.crossover < 0:
+            self.sell()
+
+# Backtest a given ticker
+def run_backtest(ticker):
+    logging.info(f"Running backtest for {ticker}")
+    cerebro = bt.Cerebro()
+    cerebro.addstrategy(MACDStrategy)
+    df = yf.download(ticker, start='2023-01-01', end='2023-12-31')
+    if df.empty or 'Close' not in df.columns:
+        logging.warning(f"No data for {ticker}")
+        return
+    data = bt.feeds.PandasData(dataname=df)
+    cerebro.adddata(data)
+    cerebro.broker.set_cash(10000)
+    cerebro.run()
+    cerebro.plot()
+
+# Run backtest for top candidate in each price range
+if __name__ == '__main__':
+    threading.Thread(target=start_web_server, daemon=True).start()
+
+    # Give the server a head start before running backtests
+    time.sleep(2)
+
+    top_candidates = []
+    for min_price, max_price in [(0, 5), (5, 20), (20, 50)]:
+        candidates = screen_stocks_by_price_range(min_price, max_price)
+        if candidates:
+            top_candidates.append(candidates[0][0])  # only symbol
+
+    for symbol in top_candidates:
+        run_backtest(symbol)
+
+    while True:
+        time.sleep(3)
